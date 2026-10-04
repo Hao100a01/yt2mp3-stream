@@ -1,0 +1,20 @@
+# Thêm block này vào docker-compose.yml đang có (chung network với n8n/bridge)
+
+services:
+  yt2mp3:
+    build: ./yt2mp3-stream
+    environment:
+      # BẮT BUỘC: domain public HTTPS thật, vì chính ESP32 sẽ gọi thẳng vào đây
+      # để tải audio -- không phải n8n hay bridge gọi hộ.
+      - PUBLIC_BASE_URL=https://yt2mp3.yourdomain.com
+      - CACHE_DIR=/app/cache
+      - LOG_LEVEL=INFO
+    volumes:
+      - yt2mp3_cache:/app/cache
+    restart: unless-stopped
+    # Không expose port ra ngoài trực tiếp ở đây -- để reverse proxy
+    # (Caddy/Nginx) có HTTPS đứng trước, trỏ domain vào container này qua
+    # tên service nội bộ "yt2mp3:8000"
+
+volumes:
+  yt2mp3_cache:

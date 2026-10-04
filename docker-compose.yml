@@ -1,0 +1,28 @@
+# Chạy độc lập: docker compose up -d --build
+# Nếu muốn ghép chung network với n8n/bridge đang có, copy phần "yt2mp3:"
+# bên dưới vào docker-compose.yml chính, đổi "networks" cho khớp.
+
+services:
+  yt2mp3:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - yt2mp3_cache:/app/cache
+    ports:
+      - "8000:8000"
+    # QUAN TRỌNG: DNS mặc định của board/ISP có thể rất chậm (từng đo được
+    # 8s/lần resolve). Ép dùng DNS nhanh để tránh lặp lại vấn đề đó.
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+volumes:
+  yt2mp3_cache:
